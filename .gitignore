@@ -1,0 +1,6 @@
+f1race/
+__pycache__/
+.pytest_cache/
+.env
+data/raw/
+data/processed/
