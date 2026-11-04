@@ -1,21 +1,15 @@
-import requests
 from pathlib import Path
 import json
 import pandas as pd
+from api_client import fetch_json
 YEAR = 2023
 BASE_DIR = Path(__file__).resolve().parent.parent
 RAW_DIR = BASE_DIR / "data" / "raw"
 PROC =  BASE_DIR / "data" / "processed" 
 url = f"https://api.jolpi.ca/ergast/f1/{YEAR}/races.json"
-timeout = 30
-headers = {
-    "User-Agent" : "F1RaceAdvisor/0.1 (personal educational project)"
-}
 
-response = requests.get(url, headers=headers,timeout=timeout)
-print(response.raise_for_status())
-print(response.status_code)
-data = response.json()
+
+data = fetch_json(url,params={"limit": 100})
 json_path = RAW_DIR / f"races_{YEAR}.json"
 
 with open(json_path,"w",encoding="utf-8") as f:
