@@ -9,24 +9,27 @@ YEAR = 2023
 PROC =  BASE_DIR / "data" / "processed" 
 ROUND = 1
 
-url = f"https://api.jolpi.ca/ergast/f1/{YEAR}/{ROUND}/results.json"
 
+def fetch_results(year:int, round:int)->pd.DataFrame:
+    url = f"https://api.jolpi.ca/ergast/f1/{year}/{round}/results.json"
+    json_path = RAW_DIR / f"results_{year}_{round}.json"
+    if json_path.exists():
+        with open(json_path,"r",encoding="utf-8") as f:
+            data = json.load(f) 
+        print("Using cached JSON")
+    else:
+        data = fetch_json(url,params={"limit": 100})
+        with open(json_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=4)
+        print("Downloaded JSON from API")
 
-json_path = RAW_DIR / f"results_{YEAR}_{ROUND}.json"
-if json_path.exists():
-    with open(json_path,"r",encoding="utf-8") as f:
-        data = json.load(f) 
-    print("Using cached JSON")
-else:
-    data = fetch_json(url,params={"limit": 100})
-    with open(json_path, "w", encoding="utf-8") as f:
-        json.dump(data, f, indent=4)
-    print("Downloaded JSON from API")
+    df_race = parse_results(data)
+    PROC.mkdir(parents=True, exist_ok=True)
+    df_race.to_csv(
+        PROC / f"results_{year}_{round:02d}.csv",
+        index=False
+    )
+    return df_race
 
-df_race = parse_results(data)
-print(df_race.head())
-print(df_race.shape)
-df_race.to_csv(
-    PROC / f"results_{YEAR}_{ROUND:02d}.csv",
-    index=False
-)
+if __name__ == "__main__":
+    fetch_results(2023, 1)
